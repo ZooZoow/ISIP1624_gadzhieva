@@ -17,14 +17,14 @@ namespace StoreManagement
     // Класс товара
     public class Product
     {
-        public string Code { get; set; }
-        public string Name { get; set; }
-        public decimal Price { get; set; }
-        public int Quantity { get; set; }
+        public int Code; 
+        public string Name;
+        public decimal Price;
+        public int Quantity;
         public bool InStock => Quantity > 0;
         public ProductCategory Category { get; set; }
 
-        public Product(string code, string name, decimal price, int quantity, ProductCategory category)
+        public Product(int code, string name, decimal price, int quantity, ProductCategory category)
         {
             Code = code;
             Name = name;
@@ -42,7 +42,7 @@ namespace StoreManagement
 
     class Program
     {
-        private static List<StoreManagement.Product> products = new List<StoreManagement.Product>();
+        private static List<Product> products = new List<Product>();
         private static int productCounter = 1;
 
         static void Main(string[] args)
@@ -64,10 +64,9 @@ namespace StoreManagement
             Console.WriteLine("Добавлено 5 тестовых товаров.");
         }
 
-        // Генерация уникального кода
-        static string GenerateProductCode()
+        static int GenerateProductCode()
         {
-            return "1" + productCounter++.ToString("D4");
+            return productCounter++;
         }
 
         // Главное меню
@@ -120,7 +119,7 @@ namespace StoreManagement
         // Метод для добавления товара (базовый)
         static void AddProduct(string name, decimal price, int quantity, ProductCategory category)
         {
-            string code = GenerateProductCode();
+            int code = GenerateProductCode();
             products.Add(new Product(code, name, price, quantity, category));
         }
 
@@ -221,7 +220,7 @@ namespace StoreManagement
             }
 
             // Добавление товара
-            string code = GenerateProductCode();
+            int code = GenerateProductCode();
             products.Add(new Product(code, name, price, quantity, category));
             Console.WriteLine($"Товар успешно добавлен! Код товара: {code}");
         }
@@ -240,17 +239,22 @@ namespace StoreManagement
             DisplayAllProducts();
 
             Console.Write("Введите код товара для удаления: ");
-            string code = Console.ReadLine().Trim();
-
-            var product = products.FirstOrDefault(p => p.Code == code);
-            if (product != null)
+            if (int.TryParse(Console.ReadLine().Trim(), out int code))
             {
-                products.Remove(product);
-                Console.WriteLine($"Товар с кодом {code} успешно удален.");
+                var product = products.FirstOrDefault(p => p.Code == code);
+                if (product != null)
+                {
+                    products.Remove(product);
+                    Console.WriteLine($"Товар с кодом {code} успешно удален.");
+                }
+                else
+                {
+                    Console.WriteLine("Товар с таким кодом не найден.");
+                }
             }
             else
             {
-                Console.WriteLine("Товар с таким кодом не найден.");
+                Console.WriteLine("Ошибка! Введите корректный числовой код.");
             }
         }
 
@@ -268,28 +272,33 @@ namespace StoreManagement
             DisplayAllProducts();
 
             Console.Write("Введите код товара для заказа поставки: ");
-            string code = Console.ReadLine().Trim();
-
-            var product = products.FirstOrDefault(p => p.Code == code);
-            if (product != null)
+            if (int.TryParse(Console.ReadLine().Trim(), out int code))
             {
-                int quantity;
-                while (true)
+                var product = products.FirstOrDefault(p => p.Code == code);
+                if (product != null)
                 {
-                    Console.Write("Введите количество для заказа: ");
-                    if (int.TryParse(Console.ReadLine(), out quantity) && quantity > 0)
+                    int quantity;
+                    while (true)
                     {
-                        break;
+                        Console.Write("Введите количество для заказа: ");
+                        if (int.TryParse(Console.ReadLine(), out quantity) && quantity > 0)
+                        {
+                            break;
+                        }
+                        Console.WriteLine("Ошибка! Введите корректное положительное количество.");
                     }
-                    Console.WriteLine("Ошибка! Введите корректное положительное количество.");
-                }
 
-                product.Quantity += quantity;
-                Console.WriteLine($"Поставка успешно заказана! Новое количество: {product.Quantity}");
+                    product.Quantity += quantity;
+                    Console.WriteLine($"Поставка успешно заказана! Новое количество: {product.Quantity}");
+                }
+                else
+                {
+                    Console.WriteLine("Товар с таким кодом не найден.");
+                }
             }
             else
             {
-                Console.WriteLine("Товар с таким кодом не найден.");
+                Console.WriteLine("Ошибка! Введите корректный числовой код.");
             }
         }
 
@@ -307,36 +316,41 @@ namespace StoreManagement
             DisplayAllProducts();
 
             Console.Write("Введите код товара для продажи: ");
-            string code = Console.ReadLine().Trim();
-
-            var product = products.FirstOrDefault(p => p.Code == code);
-            if (product != null)
+            if (int.TryParse(Console.ReadLine().Trim(), out int code))
             {
-                if (!product.InStock)
+                var product = products.FirstOrDefault(p => p.Code == code);
+                if (product != null)
                 {
-                    Console.WriteLine("Товара нет в наличии!");
-                    return;
-                }
-
-                int quantity;
-                while (true)
-                {
-                    Console.Write($"Введите количество для продажи (доступно: {product.Quantity}): ");
-                    if (int.TryParse(Console.ReadLine(), out quantity) && quantity > 0 && quantity <= product.Quantity)
+                    if (!product.InStock)
                     {
-                        break;
+                        Console.WriteLine("Товара нет в наличии!");
+                        return;
                     }
-                    Console.WriteLine("Ошибка! Введите корректное количество.");
-                }
 
-                product.Quantity -= quantity;
-                decimal total = product.Price * quantity;
-                Console.WriteLine($"Продажа успешно завершена! Продано: {quantity} шт., Сумма: {total:C}");
-                Console.WriteLine($"Остаток на складе: {product.Quantity} шт.");
+                    int quantity;
+                    while (true)
+                    {
+                        Console.Write($"Введите количество для продажи (доступно: {product.Quantity}): ");
+                        if (int.TryParse(Console.ReadLine(), out quantity) && quantity > 0 && quantity <= product.Quantity)
+                        {
+                            break;
+                        }
+                        Console.WriteLine("Ошибка! Введите корректное количество.");
+                    }
+
+                    product.Quantity -= quantity;
+                    decimal total = product.Price * quantity;
+                    Console.WriteLine($"Продажа успешно завершена! Продано: {quantity} шт., Сумма: {total:C}");
+                    Console.WriteLine($"Остаток на складе: {product.Quantity} шт.");
+                }
+                else
+                {
+                    Console.WriteLine("Товар с таким кодом не найден.");
+                }
             }
             else
             {
-                Console.WriteLine("Товар с таким кодом не найден.");
+                Console.WriteLine("Ошибка! Введите корректный числовой код.");
             }
         }
 
@@ -372,17 +386,22 @@ namespace StoreManagement
         static void SearchByCode()
         {
             Console.Write("Введите код товара: ");
-            string code = Console.ReadLine().Trim();
-
-            var product = products.FirstOrDefault(p => p.Code == code);
-            if (product != null)
+            if (int.TryParse(Console.ReadLine().Trim(), out int code))
             {
-                Console.WriteLine("\nНайденный товар:");
-                Console.WriteLine(product);
+                var product = products.FirstOrDefault(p => p.Code == code);
+                if (product != null)
+                {
+                    Console.WriteLine("\nНайденный товар:");
+                    Console.WriteLine(product);
+                }
+                else
+                {
+                    Console.WriteLine("Товар с таким кодом не найден.");
+                }
             }
             else
             {
-                Console.WriteLine("Товар с таким кодом не найден.");
+                Console.WriteLine("Ошибка! Введите корректный числовой код.");
             }
         }
 
